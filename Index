@@ -1,0 +1,1087 @@
+```html
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CardSkope Monster RPG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Press Start 2P', monospace;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        body {
+            background-color: #0d1117;
+            color: #ffffff;
+            touch-action: manipulation;
+        }
+        canvas {
+            image-rendering: pixelated;
+        }
+        .pixel-border {
+            border: 4px solid #1e293b;
+            box-shadow: 0 0 0 4px #000000, 0 8px 0 0 rgba(0,0,0,0.5);
+        }
+        .retro-btn {
+            background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+            border: 3px solid #60a5fa;
+            box-shadow: 0 4px 0 #1e3a8a, 0 6px 0 #000;
+            transition: all 0.05s ease;
+        }
+        .retro-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #1e3a8a, 0 2px 0 #000;
+        }
+        .retro-btn-red {
+            background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
+            border: 3px solid #fca5a5;
+            box-shadow: 0 4px 0 #7f1d1d, 0 6px 0 #000;
+        }
+        .retro-btn-red:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #7f1d1d, 0 2px 0 #000;
+        }
+        .retro-btn-green {
+            background: linear-gradient(180deg, #10b981 0%, #047857 100%);
+            border: 3px solid #6ee7b7;
+            box-shadow: 0 4px 0 #064e3b, 0 6px 0 #000;
+        }
+        .retro-btn-green:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #064e3b, 0 2px 0 #000;
+        }
+        .retro-btn-yellow {
+            background: linear-gradient(180deg, #f59e0b 0%, #b45309 100%);
+            border: 3px solid #fde047;
+            box-shadow: 0 4px 0 #78350f, 0 6px 0 #000;
+        }
+        .retro-btn-yellow:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #78350f, 0 2px 0 #000;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-2 overflow-hidden select-none">
+
+    <!-- GAME CONTAINER -->
+    <div id="game-container" class="relative w-full max-w-md bg-slate-900 border-4 border-slate-700 rounded-xl overflow-hidden shadow-2xl flex flex-col" style="height: 680px;">
+        
+        <!-- CANVAS SCREEN AREA -->
+        <div class="relative w-full bg-black flex-grow overflow-hidden flex items-center justify-center">
+            <canvas id="gameCanvas" width="320" height="380" class="w-full h-full object-contain bg-black"></canvas>
+            
+            <!-- OVERLAY TEXT BOX / DIALOGUE -->
+            <div id="dialog-box" class="hidden absolute bottom-2 left-2 right-2 bg-slate-800 border-4 border-white p-3 text-xs leading-relaxed z-20 text-white rounded shadow-lg">
+                <p id="dialog-text">Hallo Trainer! Wilkommen in der Welt von CardSkope Monster!</p>
+                <div class="text-right text-yellow-400 mt-2 text-[10px] animate-pulse">▼ TIPPEN</div>
+            </div>
+
+            <!-- STARTER SELECTION OVERLAY -->
+            <div id="starter-overlay" class="hidden absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-4 z-30">
+                <h2 class="text-yellow-400 text-sm mb-4 text-center">WÄHLE DEINEN STARTER!</h2>
+                <div class="grid grid-cols-3 gap-2 w-full max-w-xs mb-4">
+                    <button onclick="selectStarter(1)" class="bg-emerald-900 border-2 border-emerald-400 p-2 rounded flex flex-col items-center hover:scale-105 transition">
+                        <canvas id="starter-1" width="48" height="48"></canvas>
+                        <span class="text-[9px] text-emerald-300 mt-1">Blattling</span>
+                        <span class="text-[7px] text-gray-400">Pflanze</span>
+                    </button>
+                    <button onclick="selectStarter(2)" class="bg-rose-900 border-2 border-rose-400 p-2 rounded flex flex-col items-center hover:scale-105 transition">
+                        <canvas id="starter-2" width="48" height="48"></canvas>
+                        <span class="text-[9px] text-rose-300 mt-1">Glutofant</span>
+                        <span class="text-[7px] text-gray-400">Feuer</span>
+                    </button>
+                    <button onclick="selectStarter(3)" class="bg-sky-900 border-2 border-sky-400 p-2 rounded flex flex-col items-center hover:scale-105 transition">
+                        <canvas id="starter-3" width="48" height="48"></canvas>
+                        <span class="text-[9px] text-sky-300 mt-1">Panzerkrabbe</span>
+                        <span class="text-[7px] text-gray-400">Wasser</span>
+                    </button>
+                </div>
+                <div id="starter-desc" class="text-[9px] text-gray-300 text-center h-12 bg-slate-800 p-2 rounded border border-slate-600 w-full">Wähle ein Monster aus!</div>
+            </div>
+
+            <!-- CARDSKOPE BUCH (MONSTERDEX) MODAL -->
+            <div id="dex-modal" class="hidden absolute inset-0 bg-slate-950 z-40 p-3 flex flex-col">
+                <div class="flex justify-between items-center mb-2 border-b-2 border-yellow-500 pb-1">
+                    <span class="text-yellow-400 text-xs">CARDSKOPE BUCH</span>
+                    <button onclick="toggleDex()" class="text-red-400 text-xs hover:text-white">X CLOSE</button>
+                </div>
+                <div id="dex-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+            </div>
+
+            <!-- BAG MODAL -->
+            <div id="bag-modal" class="hidden absolute inset-0 bg-slate-950 z-40 p-3 flex flex-col">
+                <div class="flex justify-between items-center mb-2 border-b-2 border-emerald-500 pb-1">
+                    <span class="text-emerald-400 text-xs">DEIN BEUTEL</span>
+                    <button onclick="toggleBag()" class="text-red-400 text-xs hover:text-white">X CLOSE</button>
+                </div>
+                <div id="bag-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+            </div>
+
+            <!-- TEAM MODAL -->
+            <div id="team-modal" class="hidden absolute inset-0 bg-slate-950 z-40 p-3 flex flex-col">
+                <div class="flex justify-between items-center mb-2 border-b-2 border-blue-500 pb-1">
+                    <span class="text-blue-400 text-xs">MONSTER TEAM</span>
+                    <button onclick="toggleTeam()" class="text-red-400 text-xs hover:text-white">X CLOSE</button>
+                </div>
+                <div id="team-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+            </div>
+        </div>
+
+        <!-- BATTLE ACTION MENU (UI GANZ UNTEN) -->
+        <div id="battle-menu" class="hidden bg-slate-950 p-2 border-t-4 border-slate-700 flex-shrink-0">
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="battleAction('attack')" class="retro-btn-red py-3 px-2 text-[10px] text-white rounded font-bold">⚔️ ANGRIFF</button>
+                <button onclick="battleAction('team')" class="retro-btn py-3 px-2 text-[10px] text-white rounded font-bold">🐾 TEAM</button>
+                <button onclick="battleAction('bag')" class="retro-btn-yellow py-3 px-2 text-[10px] text-white rounded font-bold">🧪 BEUTEL</button>
+                <button onclick="battleAction('flee')" class="retro-btn-green py-3 px-2 text-[10px] text-white rounded font-bold">🏃 FLUCHT</button>
+            </div>
+        </div>
+
+        <!-- FIELD / OVERWORLD BOTTOM CONTROLS -->
+        <div id="field-menu" class="bg-slate-950 p-2 border-t-4 border-slate-800 flex justify-around items-center flex-shrink-0">
+            <button onclick="toggleDex()" class="bg-slate-800 text-yellow-400 border border-yellow-600 px-2 py-1 rounded text-[9px]">📖 DEX</button>
+            <button onclick="toggleTeam()" class="bg-slate-800 text-blue-400 border border-blue-600 px-2 py-1 rounded text-[9px]">🐾 TEAM</button>
+            <button onclick="toggleBag()" class="bg-slate-800 text-emerald-400 border border-emerald-600 px-2 py-1 rounded text-[9px]">🎒 BEUTEL</button>
+            <button onclick="saveGame(true)" class="bg-slate-800 text-purple-400 border border-purple-600 px-2 py-1 rounded text-[9px]">💾 SAVE</button>
+        </div>
+
+        <!-- TOUCH GAMEPAD (ON SCREEN CONTROLLER) -->
+        <div class="bg-slate-950 p-3 border-t border-slate-800 flex justify-between items-center select-none flex-shrink-0">
+            <!-- DPAD -->
+            <div class="relative w-28 h-28">
+                <button ontouchstart="handlePad('up', true)" ontouchend="handlePad('up', false)" mousedown="handlePad('up', true)" mouseup="handlePad('up', false)" class="absolute top-0 left-9 w-10 h-9 bg-slate-800 border border-slate-600 active:bg-slate-600 rounded-t text-xs flex items-center justify-center text-white">▲</button>
+                <button ontouchstart="handlePad('left', true)" ontouchend="handlePad('left', false)" class="absolute top-9 left-0 w-9 h-10 bg-slate-800 border border-slate-600 active:bg-slate-600 rounded-l text-xs flex items-center justify-center text-white">◀</button>
+                <button ontouchstart="handlePad('right', true)" ontouchend="handlePad('right', false)" class="absolute top-9 right-0 w-9 h-10 bg-slate-800 border border-slate-600 active:bg-slate-600 rounded-r text-xs flex items-center justify-center text-white">▶</button>
+                <button ontouchstart="handlePad('down', true)" ontouchend="handlePad('down', false)" class="absolute bottom-0 left-9 w-10 h-9 bg-slate-800 border border-slate-600 active:bg-slate-600 rounded-b text-xs flex items-center justify-center text-white">▼</button>
+                <div class="absolute top-9 left-9 w-10 h-10 bg-slate-900 border border-slate-700"></div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="flex gap-3">
+                <button onclick="handleAButton()" class="w-12 h-12 bg-rose-600 active:bg-rose-800 border-2 border-rose-300 rounded-full flex items-center justify-center font-bold text-white shadow-lg text-sm">A</button>
+                <button onclick="handleBButton()" class="w-12 h-12 bg-amber-600 active:bg-amber-800 border-2 border-amber-300 rounded-full flex items-center justify-center font-bold text-white shadow-lg text-sm">B</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SCRIPT -->
+    <script>
+        // ==========================================
+        // GAME DATABASE & PIXEL ART DEFINITIONS
+        // ==========================================
+
+        // Monster Database
+        const MONSTER_DB = [
+            { id: 1, name: "Blattling", type: "Pflanze", hp: 22, atk: 7, def: 6, spd: 5, exp: 20, desc: "Ein friedliches Wesen aus dem Wald, das Sonnenlicht sammelt.", sprite: "blattling" },
+            { id: 2, name: "Glutofant", type: "Feuer", hp: 20, atk: 9, def: 4, spd: 6, exp: 22, desc: "Ein kleiner feuriger Elefant mit glühendem Rüssel.", sprite: "glutofant" },
+            { id: 3, name: "Panzerkrabbe", type: "Wasser", hp: 25, atk: 6, def: 8, spd: 4, exp: 21, desc: "Beschützt sich mit harten Scheren und steinhartem Panzer.", sprite: "panzerkrabbe" },
+            { id: 4, name: "Schattenmotte", type: "Geist", hp: 18, atk: 8, def: 4, spd: 9, exp: 18, desc: "Flattert in dunklen Nächten und hinterlässt schimmernden Staub.", sprite: "schattenmotte" },
+            { id: 5, name: "Funkenmaus", type: "Elektro", hp: 19, atk: 8, def: 5, spd: 10, exp: 19, desc: "Lädt ihre Backen mit statischer Elektrizität auf.", sprite: "funkenmaus" },
+            { id: 6, name: "Steinbeißer", type: "Gestein", hp: 28, atk: 7, def: 10, spd: 3, exp: 24, desc: "Ernährt sich von Mineralien und harten Felsen.", sprite: "steinbeisser" },
+            { id: 7, name: "Megablatt", type: "Pflanze", hp: 35, atk: 12, def: 10, spd: 8, exp: 50, desc: "Die entwickelte Form von Blattling mit gewaltiger Pflanzenkraft.", sprite: "megablatt", evo: 12 },
+            { id: 8, name: "Vulkanofant", type: "Feuer", hp: 32, atk: 15, def: 8, spd: 9, exp: 55, desc: "Entwicklung von Glutofant. Speit schmelzende Lava aus.", sprite: "vulkanofant", evo: 12 },
+            { id: 9, name: "Titankrabbe", type: "Wasser", hp: 40, atk: 11, def: 14, spd: 6, exp: 52, desc: "Kann mit ihren Klauen massive Felsen mühelos zermalmen.", sprite: "titankrabbe", evo: 12 },
+            { id: 10, name: "Drachenling", type: "Drache", hp: 30, atk: 14, def: 9, spd: 11, exp: 60, desc: "Ein seltenes und majestätisches Fabelwesen.", sprite: "drachenling" }
+        ];
+
+        // Custom Pixel-Art Renderer for Icons & Battle Sprites
+        function drawPixelMonster(ctx, type, x, y, size = 64, flip = false) {
+            ctx.save();
+            ctx.translate(x, y);
+            if(flip) {
+                ctx.scale(-1, 1);
+            }
+            const p = size / 16; // 16x16 pixel grid scale
+
+            function rect(px, py, pw, ph, color) {
+                ctx.fillStyle = color;
+                ctx.fillRect(px * p, py * p, pw * p, ph * p);
+            }
+
+            // Draw based on sprite type
+            switch(type) {
+                case "blattling":
+                case "megablatt":
+                    // Body
+                    rect(4, 5, 8, 9, "#10b981");
+                    rect(3, 7, 10, 5, "#059669");
+                    // Leaf head
+                    rect(6, 1, 4, 4, "#34d399");
+                    rect(7, 0, 2, 2, "#6ee7b7");
+                    // Eyes
+                    rect(5, 7, 2, 3, "#ffffff");
+                    rect(6, 8, 1, 2, "#000000");
+                    rect(9, 7, 2, 3, "#ffffff");
+                    rect(9, 8, 1, 2, "#000000");
+                    // Cheeks
+                    rect(4, 10, 2, 1, "#f43f5e");
+                    rect(10, 10, 2, 1, "#f43f5e");
+                    // Feet
+                    rect(4, 14, 3, 2, "#047857");
+                    rect(9, 14, 3, 2, "#047857");
+                    break;
+
+                case "glutofant":
+                case "vulkanofant":
+                    // Body
+                    rect(3, 6, 10, 8, "#f97316");
+                    rect(4, 5, 8, 2, "#ea580c");
+                    // Trunk / Rüssel
+                    rect(1, 8, 3, 3, "#f97316");
+                    rect(1, 6, 2, 2, "#ef4444"); // Flame tip
+                    // Ears
+                    rect(11, 5, 3, 5, "#c2410c");
+                    // Eyes
+                    rect(5, 7, 2, 2, "#ffffff");
+                    rect(5, 8, 1, 1, "#000000");
+                    // Feet
+                    rect(4, 14, 3, 2, "#9a3412");
+                    rect(9, 14, 3, 2, "#9a3412");
+                    // Flame tail
+                    rect(12, 11, 3, 3, "#facc15");
+                    rect(13, 10, 2, 2, "#ef4444");
+                    break;
+
+                case "panzerkrabbe":
+                case "titankrabbe":
+                    // Shell / Body
+                    rect(4, 6, 8, 7, "#0284c7");
+                    rect(3, 8, 10, 4, "#0369a1");
+                    // Claws
+                    rect(1, 4, 3, 4, "#38bdf8");
+                    rect(12, 4, 3, 4, "#38bdf8");
+                    rect(2, 3, 2, 2, "#e0f2fe");
+                    // Eyes on stalks
+                    rect(5, 3, 2, 3, "#ffffff");
+                    rect(6, 4, 1, 1, "#000000");
+                    rect(9, 3, 2, 3, "#ffffff");
+                    rect(9, 4, 1, 1, "#000000");
+                    // Legs
+                    rect(3, 13, 2, 3, "#075985");
+                    rect(11, 13, 2, 3, "#075985");
+                    break;
+
+                case "schattenmotte":
+                    // Wings
+                    rect(1, 3, 6, 8, "#8b5cf6");
+                    rect(9, 3, 6, 8, "#8b5cf6");
+                    rect(2, 4, 4, 6, "#c084fc");
+                    rect(10, 4, 4, 6, "#c084fc");
+                    // Body
+                    rect(6, 5, 4, 8, "#312e81");
+                    // Eyes
+                    rect(6, 6, 1, 2, "#f43f5e");
+                    rect(9, 6, 1, 2, "#f43f5e");
+                    // Antennae
+                    rect(5, 2, 2, 3, "#a855f7");
+                    rect(9, 2, 2, 3, "#a855f7");
+                    break;
+
+                case "funkenmaus":
+                    // Body
+                    rect(4, 6, 8, 8, "#eab308");
+                    // Ears
+                    rect(3, 1, 3, 5, "#ca8a04");
+                    rect(10, 1, 3, 5, "#ca8a04");
+                    rect(4, 2, 1, 3, "#000000");
+                    rect(11, 2, 1, 3, "#000000");
+                    // Eyes & Cheeks
+                    rect(5, 7, 2, 2, "#000000");
+                    rect(9, 7, 2, 2, "#000000");
+                    rect(4, 9, 2, 2, "#ef4444");
+                    rect(10, 9, 2, 2, "#ef4444");
+                    // Tail
+                    rect(12, 8, 3, 2, "#fde047");
+                    rect(13, 6, 2, 3, "#fde047");
+                    break;
+
+                default: // Generic monster shape
+                    rect(4, 4, 8, 8, "#6b7280");
+                    rect(6, 6, 2, 2, "#ffffff");
+                    rect(7, 7, 1, 1, "#000000");
+                    break;
+            }
+
+            ctx.restore();
+        }
+
+        // ==========================================
+        // GAME STATE & VARIABLES
+        // ==========================================
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameState = "TITLE"; // TITLE, OVERWORLD, BATTLE, DIALOG, STARTER_SELECT
+        let player = {
+            x: 10,
+            y: 10,
+            dir: 0, // 0: down, 1: left, 2: right, 3: up
+            team: [],
+            bag: { pot: 3, ball: 5 },
+            dex: [1],
+            money: 200
+        };
+
+        let currentBattle = null;
+        let keys = {};
+        let animationFrame = 0;
+        let battleAnimTime = 0;
+        let battleParticle = null;
+
+        // Map Definition (20x20 tile view, grid coordinates)
+        const MAP_SIZE = 40;
+        const TILE_SIZE = 16;
+        let gameMap = [];
+
+        // Generate Map (0: Grass, 1: High Grass, 2: Path, 3: Water, 4: Tree/Wall, 5: Heal Center)
+        function initMap() {
+            gameMap = [];
+            for (let y = 0; y < MAP_SIZE; y++) {
+                let row = [];
+                for (let x = 0; x < MAP_SIZE; x++) {
+                    if (x === 0 || y === 0 || x === MAP_SIZE - 1 || y === MAP_SIZE - 1) {
+                        row.push(4); // Wall border
+                    } else if (x > 5 && x < 15 && y > 5 && y < 15) {
+                        row.push(1); // High grass area
+                    } else if (x === 10 || y === 18) {
+                        row.push(2); // Path
+                    } else if (x === 20 && y === 18) {
+                        row.push(5); // Pokemon Center / Heal Station
+                    } else if (x > 22 && y > 22 && x < 28 && y < 28) {
+                        row.push(3); // Water pond
+                    } else {
+                        row.push(0); // Clear grass
+                    }
+                }
+                gameMap.push(row);
+            }
+        }
+
+        // ==========================================
+        // INPUT CONTROLS
+        // ==========================================
+
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            if (e.key === 'a' || e.key === 'A' || e.key === 'Enter') handleAButton();
+            if (e.key === 'b' || e.key === 'B' || e.key === 'Escape') handleBButton();
+        });
+
+        window.addEventListener('keyup', e => {
+            keys[e.key] = false;
+        });
+
+        function handlePad(dir, active) {
+            keys[dir] = active;
+        }
+
+        function handleAButton() {
+            if (gameState === "TITLE") {
+                startNewGame();
+            } else if (gameState === "DIALOG") {
+                advanceDialog();
+            } else if (gameState === "OVERWORLD") {
+                checkInteraction();
+            }
+        }
+
+        function handleBButton() {
+            document.getElementById('dex-modal').classList.add('hidden');
+            document.getElementById('bag-modal').classList.add('hidden');
+            document.getElementById('team-modal').classList.add('hidden');
+        }
+
+        // ==========================================
+        // MAIN GAME LOOP & UPDATES
+        // ==========================================
+
+        function gameLoop() {
+            animationFrame++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === "TITLE") {
+                drawTitleScreen();
+            } else if (gameState === "OVERWORLD") {
+                updatePlayerMovement();
+                drawOverworld();
+            } else if (gameState === "BATTLE") {
+                updateBattleAnimation();
+                drawBattleScreen();
+            } else if (gameState === "DIALOG" || gameState === "STARTER_SELECT") {
+                drawOverworld();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ==========================================
+        // TITLE SCREEN
+        // ==========================================
+
+        function drawTitleScreen() {
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Title Header
+            ctx.fillStyle = "#facc15";
+            ctx.font = "14px 'Press Start 2P'";
+            ctx.textAlign = "center";
+            ctx.fillText("CARDSKOPE", canvas.width / 2, 70);
+            ctx.fillStyle = "#ef4444";
+            ctx.fillText("MONSTER", canvas.width / 2, 95);
+
+            // Featured Pixel Sprite
+            drawPixelMonster(ctx, "glutofant", canvas.width / 2 - 32, 130, 64);
+
+            // Options
+            ctx.font = "9px 'Press Start 2P'";
+            ctx.fillStyle = (Math.floor(animationFrame / 20) % 2 === 0) ? "#ffffff" : "#94a3b8";
+            ctx.fillText("PRESS A / TAP TO START", canvas.width / 2, 240);
+
+            if (localStorage.getItem("cardskope_save")) {
+                ctx.fillStyle = "#34d399";
+                ctx.fillText("[HOLD B] LADE SPEICHERSTAND", canvas.width / 2, 270);
+            }
+
+            ctx.fillStyle = "#64748b";
+            ctx.font = "7px 'Press Start 2P'";
+            ctx.fillText("© 2026 CardSkope Studios", canvas.width / 2, 350);
+        }
+
+        function startNewGame() {
+            initMap();
+            gameState = "STARTER_SELECT";
+            showStarterSelection();
+        }
+
+        function loadSavedGame() {
+            const data = localStorage.getItem("cardskope_save");
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    player = parsed;
+                    initMap();
+                    gameState = "OVERWORLD";
+                    showDialog("Spielstand erfolgreich geladen!");
+                } catch(e) {
+                    showDialog("Fehler beim Laden des Spielstands.");
+                }
+            }
+        }
+
+        // ==========================================
+        // STARTER SELECTION
+        // ==========================================
+
+        function showStarterSelection() {
+            document.getElementById('starter-overlay').classList.remove('hidden');
+
+            // Draw starter previews on mini canvases
+            [1, 2, 3].forEach(id => {
+                const c = document.getElementById(`starter-${id}`);
+                const cx = c.getContext('2d');
+                cx.clearRect(0, 0, 48, 48);
+                const m = MONSTER_DB.find(x => x.id === id);
+                drawPixelMonster(cx, m.sprite, 0, 0, 48);
+            });
+        }
+
+        function selectStarter(id) {
+            const base = MONSTER_DB.find(x => x.id === id);
+            player.team = [{
+                ...base,
+                level: 5,
+                maxHp: base.hp,
+                currentHp: base.hp,
+                exp: 0
+            }];
+            player.dex = [id];
+
+            document.getElementById('starter-overlay').classList.add('hidden');
+            gameState = "OVERWORLD";
+            showDialog(`Du hast ${base.name} gewählt! Ein hervorragender Partner für deine Reise!`);
+        }
+
+        // ==========================================
+        // OVERWORLD & MOVEMENT
+        // ==========================================
+
+        function updatePlayerMovement() {
+            if (gameState !== "OVERWORLD") return;
+
+            let dx = 0;
+            let dy = 0;
+
+            if (keys['ArrowUp'] || keys['w'] || keys['up']) { dy = -1; player.dir = 3; }
+            else if (keys['ArrowDown'] || keys['s'] || keys['down']) { dy = 1; player.dir = 0; }
+            else if (keys['ArrowLeft'] || keys['a'] || keys['left']) { dx = -1; player.dir = 1; }
+            else if (keys['ArrowRight'] || keys['d'] || keys['right']) { dx = 1; player.dir = 2; }
+
+            if (dx !== 0 || dy !== 0) {
+                // Throttle movement
+                if (animationFrame % 6 === 0) {
+                    let nextX = player.x + dx;
+                    let nextY = player.y + dy;
+
+                    // Bounds & Wall Collisions
+                    if (nextX >= 0 && nextX < MAP_SIZE && nextY >= 0 && nextY < MAP_SIZE) {
+                        const tile = gameMap[nextY][nextX];
+                        if (tile !== 4) { // 4 is Wall
+                            player.x = nextX;
+                            player.y = nextY;
+
+                            // High grass encounter
+                            if (tile === 1 && Math.random() < 0.15) {
+                                triggerEncounter();
+                            }
+                            // Heal center trigger
+                            if (tile === 5) {
+                                healTeam();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function drawOverworld() {
+            const viewportTilesX = 10;
+            const viewportTilesY = 12;
+            const tileSize = 32;
+
+            const startX = Math.max(0, player.x - Math.floor(viewportTilesX / 2));
+            const startY = Math.max(0, player.y - Math.floor(viewportTilesY / 2));
+
+            // Render Map Tiles
+            for (let y = 0; y < viewportTilesY; y++) {
+                for (let x = 0; x < viewportTilesX; x++) {
+                    const mapX = startX + x;
+                    const mapY = startY + y;
+
+                    if (mapX < MAP_SIZE && mapY < MAP_SIZE) {
+                        const tile = gameMap[mapY][mapX];
+                        const screenX = x * tileSize;
+                        const screenY = y * tileSize;
+
+                        switch (tile) {
+                            case 0: // Grass
+                                ctx.fillStyle = "#15803d";
+                                ctx.fillRect(screenX, screenY, tileSize, tileSize);
+                                break;
+                            case 1: // High Grass
+                                ctx.fillStyle = "#166534";
+                                ctx.fillRect(screenX, screenY, tileSize, tileSize);
+                                ctx.fillStyle = "#22c55e";
+                                ctx.fillRect(screenX + 4, screenY + 4, 8, 8);
+                                ctx.fillRect(screenX + 18, screenY + 16, 8, 8);
+                                break;
+                            case 2: // Path
+                                ctx.fillStyle = "#d97706";
+                                ctx.fillRect(screenX, screenY, tileSize, tileSize);
+                                break;
+                            case 3: // Water
+                                ctx.fillStyle = "#0284c7";
+                                ctx.fillRect(screenX, screenY, tileSize, tileSize);
+                                break;
+                            case 4: // Wall / Trees
+                                ctx.fillStyle = "#064e3b";
+                                ctx.fillRect(screenX, screenY, tileSize, tileSize);
+                                ctx.fillStyle = "#022c22";
+                                ctx.fillRect(screenX + 4, screenY + 4, tileSize - 8, tileSize - 8);
+                                break;
+                            case 5: // Heal Station
+                                ctx.fillStyle = "#ef4444";
+                                ctx.fillRect(screenX, screenY, tileSize, tileSize);
+                                ctx.fillStyle = "#ffffff";
+                                ctx.fillText("+", screenX + 12, screenY + 20);
+                                break;
+                        }
+                    }
+                }
+            }
+
+            // Draw Player Character
+            const playerScreenX = (player.x - startX) * tileSize;
+            const playerScreenY = (player.y - startY) * tileSize;
+
+            // Simple Player Pixel Art
+            ctx.fillStyle = "#3b82f6"; // Shirt
+            ctx.fillRect(playerScreenX + 8, playerScreenY + 12, 16, 14);
+            ctx.fillStyle = "#fbcfe8"; // Head
+            ctx.fillRect(playerScreenX + 10, playerScreenY + 4, 12, 10);
+            ctx.fillStyle = "#dc2626"; // Cap
+            ctx.fillRect(playerScreenX + 8, playerScreenY + 2, 16, 5);
+        }
+
+        function checkInteraction() {
+            const tile = gameMap[player.y][player.x];
+            if (tile === 5) {
+                healTeam();
+            }
+        }
+
+        function healTeam() {
+            player.team.forEach(m => m.currentHp = m.maxHp);
+            showDialog("Deine Monster wurden im CardSkope-Center vollständig geheilt!");
+        }
+
+        // ==========================================
+        // BATTLE SYSTEM & ANIMATIONS
+        // ==========================================
+
+        function triggerEncounter() {
+            gameState = "BATTLE";
+            
+            // Random Wild Monster
+            const wildId = [1, 2, 3, 4, 5, 6][Math.floor(Math.random() * 6)];
+            const base = MONSTER_DB.find(m => m.id === wildId);
+            const level = Math.floor(Math.random() * 3) + 3;
+
+            currentBattle = {
+                enemy: {
+                    ...base,
+                    level: level,
+                    maxHp: base.hp + (level * 2),
+                    currentHp: base.hp + (level * 2),
+                },
+                playerMon: player.team[0],
+                state: "MENU", // MENU, ANIMATING, DIALOG
+                shakeEnemy: 0,
+                shakePlayer: 0,
+                ballAnim: null
+            };
+
+            // Register in Dex
+            if (!player.dex.includes(wildId)) player.dex.push(wildId);
+
+            document.getElementById('battle-menu').classList.remove('hidden');
+            document.getElementById('field-menu').classList.add('hidden');
+
+            showDialog(`Ein wildes ${currentBattle.enemy.name} (Lv. ${currentBattle.enemy.level}) greift an!`);
+        }
+
+        function updateBattleAnimation() {
+            battleAnimTime++;
+
+            // Handle damage shake dampening
+            if (currentBattle.shakeEnemy > 0) currentBattle.shakeEnemy -= 0.5;
+            if (currentBattle.shakePlayer > 0) currentBattle.shakePlayer -= 0.5;
+
+            // Attack Particle Movement
+            if (battleParticle) {
+                battleParticle.progress += 0.05;
+                if (battleParticle.progress >= 1) {
+                    battleParticle = null;
+                }
+            }
+        }
+
+        function drawBattleScreen() {
+            // Battle Sky Background
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(0, 0, canvas.width, 220);
+
+            // Platforms
+            ctx.fillStyle = "#334155";
+            ctx.beginPath();
+            ctx.ellipse(230, 110, 60, 20, 0, 0, Math.PI * 2); // Enemy Platform
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.ellipse(80, 200, 70, 25, 0, 0, Math.PI * 2); // Player Platform
+            ctx.fill();
+
+            if (!currentBattle) return;
+
+            const enemy = currentBattle.enemy;
+            const pMon = currentBattle.playerMon;
+
+            // IDLE ANIMATION WOBBLE
+            const enemyYOff = Math.sin(battleAnimTime * 0.1) * 3;
+            const playerYOff = Math.cos(battleAnimTime * 0.1) * 3;
+
+            // 1. DRAW ENEMY MONSTER (Top Right)
+            const enemyX = 200 + (Math.random() * currentBattle.shakeEnemy - currentBattle.shakeEnemy/2);
+            const enemyY = 50 + enemyYOff;
+            drawPixelMonster(ctx, enemy.sprite, enemyX, enemyY, 64, false);
+
+            // ENEMY HUD
+            ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+            ctx.fillRect(10, 15, 140, 40);
+            ctx.strokeStyle = "#475569";
+            ctx.strokeRect(10, 15, 140, 40);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "8px 'Press Start 2P'";
+            ctx.textAlign = "left";
+            ctx.fillText(enemy.name, 18, 28);
+            ctx.fillText(`Lv.${enemy.level}`, 105, 28);
+
+            // Enemy HP Bar
+            const enemyHpPct = Math.max(0, enemy.currentHp / enemy.maxHp);
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(18, 35, 120, 8);
+            ctx.fillStyle = enemyHpPct > 0.5 ? "#22c55e" : enemyHpPct > 0.2 ? "#eab308" : "#ef4444";
+            ctx.fillRect(18, 35, 120 * enemyHpPct, 8);
+
+            // 2. DRAW PLAYER MONSTER (Bottom Left)
+            const playerX = 50 + (Math.random() * currentBattle.shakePlayer - currentBattle.shakePlayer/2);
+            const playerY = 130 + playerYOff;
+            drawPixelMonster(ctx, pMon.sprite, playerX, playerY, 64, true);
+
+            // PLAYER HUD
+            ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+            ctx.fillRect(170, 140, 140, 45);
+            ctx.strokeStyle = "#475569";
+            ctx.strokeRect(170, 140, 140, 45);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "8px 'Press Start 2P'";
+            ctx.fillText(pMon.name, 178, 153);
+            ctx.fillText(`Lv.${pMon.level}`, 265, 153);
+
+            // Player HP Bar
+            const playerHpPct = Math.max(0, pMon.currentHp / pMon.maxHp);
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(178, 160, 120, 8);
+            ctx.fillStyle = playerHpPct > 0.5 ? "#22c55e" : playerHpPct > 0.2 ? "#eab308" : "#ef4444";
+            ctx.fillRect(178, 160, 120 * playerHpPct, 8);
+
+            ctx.fillStyle = "#cbd5e1";
+            ctx.font = "7px 'Press Start 2P'";
+            ctx.fillText(`${pMon.currentHp}/${pMon.maxHp} KP`, 178, 177);
+
+            // DRAW ATTACK PROJECTILE ANIMATION
+            if (battleParticle) {
+                const px = battleParticle.startX + (battleParticle.targetX - battleParticle.startX) * battleParticle.progress;
+                const py = battleParticle.startY + (battleParticle.targetY - battleParticle.startY) * battleParticle.progress;
+
+                ctx.fillStyle = battleParticle.color;
+                ctx.beginPath();
+                ctx.arc(px, py, 8, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // SUPER-FLASCHE CATCH ANIMATION
+            if (currentBattle.ballAnim) {
+                const ba = currentBattle.ballAnim;
+                ba.progress += 0.03;
+
+                if (ba.progress < 1) {
+                    // Arc trajectory
+                    const bx = ba.startX + (ba.targetX - ba.startX) * ba.progress;
+                    const by = ba.startY + (ba.targetY - ba.startY) * ba.progress - Math.sin(ba.progress * Math.PI) * 50;
+
+                    ctx.fillStyle = "#ef4444";
+                    ctx.beginPath();
+                    ctx.arc(bx, by, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Wackeln am Boden
+                    const shake = Math.sin(animationFrame * 0.5) * 3;
+                    ctx.fillStyle = "#ef4444";
+                    ctx.beginPath();
+                    ctx.arc(ba.targetX + shake, ba.targetY, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // ==========================================
+        // BATTLE ACTIONS & LOGIC
+        // ==========================================
+
+        function battleAction(action) {
+            if (!currentBattle || currentBattle.state !== "MENU") return;
+
+            if (action === 'attack') {
+                executePlayerTurn();
+            } else if (action === 'flee') {
+                showDialog("Du bist sicher geflohen!");
+                setTimeout(endBattle, 1200);
+            } else if (action === 'bag') {
+                toggleBag();
+            } else if (action === 'team') {
+                toggleTeam();
+            }
+        }
+
+        function executePlayerTurn() {
+            currentBattle.state = "ANIMATING";
+
+            // Trigger Particle
+            battleParticle = {
+                startX: 90,
+                startY: 150,
+                targetX: 220,
+                targetY: 70,
+                progress: 0,
+                color: "#f59e0b"
+            };
+
+            setTimeout(() => {
+                const pMon = currentBattle.playerMon;
+                const enemy = currentBattle.enemy;
+
+                const dmg = Math.max(2, Math.floor(pMon.atk * 1.5 - enemy.def * 0.5));
+                enemy.currentHp -= dmg;
+                currentBattle.shakeEnemy = 8;
+
+                showDialog(`${pMon.name} greift an und verursacht ${dmg} Schaden!`);
+
+                setTimeout(() => {
+                    if (enemy.currentHp <= 0) {
+                        enemy.currentHp = 0;
+                        showDialog(`Das wilde ${enemy.name} wurde besiegt!`);
+                        gainExp(25);
+                        setTimeout(endBattle, 1500);
+                    } else {
+                        executeEnemyTurn();
+                    }
+                }, 1200);
+            }, 600);
+        }
+
+        function executeEnemyTurn() {
+            battleParticle = {
+                startX: 220,
+                startY: 70,
+                targetX: 90,
+                targetY: 150,
+                progress: 0,
+                color: "#ef4444"
+            };
+
+            setTimeout(() => {
+                const pMon = currentBattle.playerMon;
+                const enemy = currentBattle.enemy;
+
+                const dmg = Math.max(1, Math.floor(enemy.atk - pMon.def * 0.3));
+                pMon.currentHp -= dmg;
+                currentBattle.shakePlayer = 8;
+
+                showDialog(`${enemy.name} greift an und macht ${dmg} Schaden!`);
+
+                setTimeout(() => {
+                    if (pMon.currentHp <= 0) {
+                        pMon.currentHp = 0;
+                        showDialog(`${pMon.name} wurde besiegt! Du musst zum Center!`);
+                        setTimeout(endBattle, 1500);
+                    } else {
+                        currentBattle.state = "MENU";
+                    }
+                }, 1200);
+            }, 600);
+        }
+
+        function catchMonster() {
+            if (player.bag.ball <= 0) {
+                showDialog("Du hast keine Super-Flaschen mehr!");
+                return;
+            }
+
+            player.bag.ball--;
+            currentBattle.state = "ANIMATING";
+
+            currentBattle.ballAnim = {
+                startX: 80,
+                startY: 160,
+                targetX: 220,
+                targetY: 80,
+                progress: 0
+            };
+
+            showDialog("Du wirfst eine Super-Flasche...");
+
+            setTimeout(() => {
+                const catchChance = (1 - (currentBattle.enemy.currentHp / currentBattle.enemy.maxHp)) + 0.3;
+                if (Math.random() < catchChance) {
+                    showDialog(`Gewonnen! ${currentBattle.enemy.name} wurde gefangen!`);
+                    player.team.push({ ...currentBattle.enemy });
+                    setTimeout(endBattle, 1500);
+                } else {
+                    currentBattle.ballAnim = null;
+                    showDialog("Oh nein! Das Monster hat sich befreit!");
+                    setTimeout(executeEnemyTurn, 1200);
+                }
+            }, 2500);
+        }
+
+        function gainExp(amount) {
+            const pMon = player.team[0];
+            pMon.exp += amount;
+            if (pMon.exp >= pMon.level * 20) {
+                pMon.level++;
+                pMon.maxHp += 4;
+                pMon.currentHp += 4;
+                pMon.atk += 2;
+                pMon.def += 2;
+                showDialog(`STUFENAUFSTIEG! ${pMon.name} erreicht Level ${pMon.level}!`);
+
+                // Check Evolution
+                if (pMon.evo && pMon.level >= pMon.evo) {
+                    const nextForm = MONSTER_DB.find(m => m.id === pMon.id + 6);
+                    if (nextForm) {
+                        pMon.name = nextForm.name;
+                        pMon.sprite = nextForm.sprite;
+                        showDialog(`WAS?! ${pMon.name} entwickelt sich zu ${nextForm.name}!`);
+                    }
+                }
+            }
+        }
+
+        function endBattle() {
+            gameState = "OVERWORLD";
+            currentBattle = null;
+            document.getElementById('battle-menu').classList.add('hidden');
+            document.getElementById('field-menu').classList.remove('hidden');
+        }
+
+        // ==========================================
+        // UI MODALS (CARDSKOPE BUCH, BAG, TEAM)
+        // ==========================================
+
+        function toggleDex() {
+            const modal = document.getElementById('dex-modal');
+            const list = document.getElementById('dex-list');
+
+            if (modal.classList.contains('hidden')) {
+                list.innerHTML = "";
+                MONSTER_DB.forEach(m => {
+                    const caught = player.dex.includes(m.id);
+                    const div = document.createElement('div');
+                    div.className = `p-2 rounded border flex items-center gap-3 ${caught ? 'bg-slate-800 border-yellow-500' : 'bg-slate-900 border-slate-700 opacity-50'}`;
+                    
+                    div.innerHTML = `
+                        <div class="text-xs font-bold text-yellow-400">#${m.id}</div>
+                        <div class="flex-1">
+                            <div class="text-xs text-white">${caught ? m.name : '???'}</div>
+                            <div class="text-[8px] text-gray-400">${caught ? 'Typ: ' + m.type : 'Unbekannt'}</div>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function toggleBag() {
+            const modal = document.getElementById('bag-modal');
+            const list = document.getElementById('bag-list');
+
+            if (modal.classList.contains('hidden')) {
+                list.innerHTML = `
+                    <div class="p-3 bg-slate-800 rounded border border-slate-700 flex justify-between items-center">
+                        <div>
+                            <div class="text-xs text-emerald-400">🧪 Trank</div>
+                            <div class="text-[8px] text-gray-400">Heilt 20 KP eines Monsters</div>
+                        </div>
+                        <button onclick="usePotion()" class="bg-emerald-600 px-2 py-1 rounded text-[9px] text-white">x${player.bag.pot} BENUTZEN</button>
+                    </div>
+                    <div class="p-3 bg-slate-800 rounded border border-slate-700 flex justify-between items-center">
+                        <div>
+                            <div class="text-xs text-rose-400">🔮 Super-Flasche</div>
+                            <div class="text-[8px] text-gray-400">Fängt wilde Monster</div>
+                        </div>
+                        <button onclick="catchMonster(); toggleBag();" class="bg-rose-600 px-2 py-1 rounded text-[9px] text-white">x${player.bag.ball} WERFEN</button>
+                    </div>
+                `;
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function toggleTeam() {
+            const modal = document.getElementById('team-modal');
+            const list = document.getElementById('team-list');
+
+            if (modal.classList.contains('hidden')) {
+                list.innerHTML = "";
+                player.team.forEach((m, idx) => {
+                    const div = document.createElement('div');
+                    div.className = "p-2 bg-slate-800 rounded border border-blue-500 flex justify-between items-center";
+                    div.innerHTML = `
+                        <div>
+                            <div class="text-xs text-blue-300">${m.name} (Lv. ${m.level})</div>
+                            <div class="text-[8px] text-gray-400">KP: ${m.currentHp}/${m.maxHp}</div>
+                        </div>
+                        ${idx > 0 ? `<button onclick="swapTeamLead(${idx})" class="bg-blue-600 text-[8px] p-1 rounded">TAUSCHEN</button>` : `<span class="text-[8px] text-yellow-400">AKTIV</span>`}
+                    `;
+                    list.appendChild(div);
+                });
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function usePotion() {
+            if (player.bag.pot > 0 && player.team[0].currentHp < player.team[0].maxHp) {
+                player.bag.pot--;
+                player.team[0].currentHp = Math.min(player.team[0].maxHp, player.team[0].currentHp + 20);
+                showDialog(`${player.team[0].name} wurde um 20 KP geheilt!`);
+                toggleBag();
+            } else {
+                showDialog("Kann nicht verwendet werden!");
+            }
+        }
+
+        function swapTeamLead(index) {
+            const temp = player.team[0];
+            player.team[0] = player.team[index];
+            player.team[index] = temp;
+            toggleTeam();
+        }
+
+        // ==========================================
+        // DIALOG SYSTEM
+        // ==========================================
+
+        function showDialog(text) {
+            document.getElementById('dialog-text').innerText = text;
+            document.getElementById('dialog-box').classList.remove('hidden');
+        }
+
+        function advanceDialog() {
+            document.getElementById('dialog-box').classList.add('hidden');
+        }
+
+        // ==========================================
+        // SAVE SYSTEM
+        // ==========================================
+
+        function saveGame(notify = false) {
+            localStorage.setItem("cardskope_save", JSON.stringify(player));
+            if (notify) {
+                showDialog("Spielstand wurde erfolgreich gespeichert!");
+            }
+        }
+
+        // Start Game Engine
+        window.onload = function() {
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
+```
